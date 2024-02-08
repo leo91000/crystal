@@ -8,6 +8,7 @@ import jwt = require('jsonwebtoken');
 import { EventEmitter } from 'events';
 import { PostGraphileResponse } from './postgraphile/http/frameworks';
 import { ShutdownActions } from './postgraphile/shutdownActions';
+import { KeyObject } from 'crypto';
 
 type PromiseOrDirect<T> = T | Promise<T>;
 type DirectOrCallback<Request, T> = T | ((req: Request) => PromiseOrDirect<T>);
@@ -238,7 +239,7 @@ export interface PostGraphileOptions<
   // The secret for your JSON web tokens. This will be used to verify tokens in
   // the `Authorization` header, and signing JWT tokens you return in
   // procedures.
-  jwtSecret?: jwt.Secret;
+  jwtSecret?: Exclude<jwt.Secret, KeyObject>;
   // The public key to verify the JWT when signed with RS265 or ES256 algorithms.
   jwtPublicKey?: jwt.Secret | jwt.GetPublicKeyOrSecret;
   // Options with which to perform JWT verification - see
@@ -318,6 +319,10 @@ export interface PostGraphileOptions<
   // disable.
   /* @middlewareOnly */
   queryCacheMaxSize?: number;
+  // By default, partitioned tables' partitions are exposed and parents
+  // are hidden in the generated GraphQL schema. You can use this flag to
+  // expose parents and hide partitions, instead.
+  usePartitionedParent?: boolean;
 }
 
 export interface CreateRequestHandlerOptions extends PostGraphileOptions {
@@ -401,7 +406,7 @@ export type ExplainOptions = {
 export interface WithPostGraphileContextOptions {
   pgPool: Pool;
   jwtToken?: string;
-  jwtSecret?: jwt.Secret;
+  jwtSecret?: Exclude<jwt.Secret, KeyObject>;
   jwtPublicKey?: jwt.Secret | jwt.GetPublicKeyOrSecret;
   jwtAudiences?: Array<string>;
   jwtRole?: Array<string>;

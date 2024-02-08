@@ -187,6 +187,10 @@ program
   .option(
     '--include-extension-resources',
     'by default, tables and functions that come from extensions are excluded; use this flag to include them (not recommended)',
+  )
+  .option(
+    '--use-partitioned-parent',
+    'by default, partitioned table partitions are exposed and their parents are hidden; use this flag to hide partitions and expose their parents',
   );
 
 pluginHook('cli:flags:add:schema', addFlag);
@@ -498,6 +502,7 @@ const {
   simpleCollections,
   legacyFunctionsOnly,
   ignoreIndexes,
+  usePartitionedParent = false,
   // tslint:disable-next-line no-any
 } = { ...config['options'], ...program, ...overridesFromOptions } as typeof program;
 
@@ -753,6 +758,7 @@ const postgraphileOptions = pluginHook(
     legacyFunctionsOnly,
     ignoreIndexes,
     ownerConnectionString,
+    usePartitionedParent,
   },
   { config, cliOptions: program },
 );
@@ -862,7 +868,7 @@ if (noServer) {
     // some instructions and other interesting information.
     server.listen(port, hostname, () => {
       const address = server.address();
-      const actualPort = typeof address === 'string' ? port : address.port;
+      const actualPort = typeof address === 'string' || address == null ? port : address.port;
       const self = cluster.isMaster
         ? isDev
           ? `server (pid=${process.pid})`

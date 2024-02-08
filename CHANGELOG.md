@@ -8,6 +8,31 @@ to you also.
 Graphile Engine, so you should also reference [those
 changes](https://github.com/graphile/graphile-engine/blob/master/CHANGELOG.md).
 
+# [4.14.0](https://github.com/graphile/postgraphile/compare/v4.13.0...v4.14.0) (2023-10-05)
+
+### Features
+
+- **interface:** add usePartitionedParent ([#1160](https://github.com/graphile/postgraphile/issues/1160)) ([c29dd0c](https://github.com/graphile/postgraphile/commit/c29dd0c8a7d25ea2fe85de373f91df1ca5864714))
+
+# [4.13.0](https://github.com/graphile/postgraphile/compare/v4.12.12...v4.13.0) (2023-01-12)
+
+### Bug Fixes
+
+- upgrade Graphile Engine ([#1702](https://github.com/graphile/postgraphile/issues/1702)) ([df19851](https://github.com/graphile/postgraphile/commit/df1985190c908f0f5f1255fb4558f74c46cae533))
+
+## [4.12.12](https://github.com/graphile/postgraphile/compare/v4.12.11...v4.12.12) (2022-12-01)
+
+### Features
+
+- **ci:** build arm64 ([#1681](https://github.com/graphile/postgraphile/issues/1681)) ([6627fcb](https://github.com/graphile/postgraphile/commit/6627fcb185cc9e869bb6495a9fed6b00c02515f6))
+
+## [4.12.11](https://github.com/graphile/postgraphile/compare/v4.12.10...v4.12.11) (2022-05-25)
+
+### Bug Fixes
+
+- handle pgClient errors ([#1633](https://github.com/graphile/postgraphile/issues/1633)) ([263ba74](https://github.com/graphile/postgraphile/commit/263ba7477bc2133eebdf89d29acd0460e58501ec))
+- **deps:** upgrade Graphile Engine ([#1631](https://github.com/graphile/postgraphile/issues/1631)) ([1824352](https://github.com/graphile/postgraphile/commit/18243528021fdae0c2f62769485f120087a24ccd))
+
 ## [4.12.10](https://github.com/graphile/postgraphile/compare/v4.12.9...v4.12.10) (2022-04-13)
 
 ### Bug Fixes
