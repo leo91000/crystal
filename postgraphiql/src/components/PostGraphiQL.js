@@ -1,12 +1,19 @@
 import React from 'react';
 import GraphiQL from 'graphiql';
 import * as querystring from 'querystring';
-import {buildClientSchema, getIntrospectionQuery, getOperationAST, GraphQLObjectType, isType, parse} from 'graphql';
+import {
+  buildClientSchema,
+  getIntrospectionQuery,
+  getOperationAST,
+  GraphQLObjectType,
+  isType,
+  parse,
+} from 'graphql';
 import GraphiQLExplorer from 'graphiql-explorer';
 import StorageAPI from 'graphiql/dist/utility/StorageAPI';
 import './postgraphiql.css';
-import {SubscriptionClient} from 'subscriptions-transport-ws';
-import {createClient} from 'graphql-ws';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { createClient } from 'graphql-ws';
 import formatSQL from '../formatSQL';
 
 const defaultQuery = `\
@@ -90,8 +97,11 @@ function explainOptionRequiresAnalyze(option) {
 
 function buildExplainOptionsHeader(explainOptions) {
   const analyzeEnabled = explainOptions.analyze;
-  const validOptions = Object.fromEntries(Object.entries(explainOptions)
-    .filter(([option]) => !explainOptionRequiresAnalyze(option) || analyzeEnabled));
+  const validOptions = Object.fromEntries(
+    Object.entries(explainOptions).filter(
+      ([option]) => !explainOptionRequiresAnalyze(option) || analyzeEnabled,
+    ),
+  );
   return querystring.stringify(validOptions, ';', '=');
 }
 
@@ -120,7 +130,7 @@ class PostGraphiQL extends React.PureComponent {
     explainOptions: this.parseFromStorage(STORAGE_KEYS.EXPLAIN_OPTIONS) || {
       costs: true,
       timing: true,
-      format: 'text'
+      format: 'text',
     },
     headersTextValid: true,
     explorerIsOpen: this._storage.get('explorerIsOpen') !== 'false',
@@ -133,7 +143,7 @@ class PostGraphiQL extends React.PureComponent {
     try {
       return value ? JSON.parse(value) : undefined;
     } catch (e) {
-      console.warn(`Failed to parse key '${key}' from storage: ${value}`)
+      console.warn(`Failed to parse key '${key}' from storage: ${value}`);
       return undefined;
     }
   }
@@ -404,7 +414,11 @@ class PostGraphiQL extends React.PureComponent {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           ...(this.state.explain && POSTGRAPHILE_CONFIG.allowExplain
-            ? { 'X-PostGraphile-Explain': `on;${buildExplainOptionsHeader(this.state.explainOptions)}` }
+            ? {
+                'X-PostGraphile-Explain': `on;${buildExplainOptionsHeader(
+                  this.state.explainOptions,
+                )}`,
+              }
             : null),
         },
         extraHeaders,
@@ -694,7 +708,7 @@ class PostGraphiQL extends React.PureComponent {
     );
   };
 
-  handleToggleExplainOption = (option) => {
+  handleToggleExplainOption = option => {
     this.handleSetExplainOption(option, !this.state.explainOptions[option]);
   };
 
@@ -703,10 +717,11 @@ class PostGraphiQL extends React.PureComponent {
       oldState => ({
         explainOptions: {
           ...oldState.explainOptions,
-          [option]: value
-        }
+          [option]: value,
+        },
       }),
-      () => this._storage.set(STORAGE_KEYS.EXPLAIN_OPTIONS, JSON.stringify(this.state.explainOptions))
+      () =>
+        this._storage.set(STORAGE_KEYS.EXPLAIN_OPTIONS, JSON.stringify(this.state.explainOptions)),
     );
   };
 
@@ -862,38 +877,50 @@ class PostGraphiQL extends React.PureComponent {
               />
 
               {POSTGRAPHILE_CONFIG.allowExplain ? (
-                  <GraphiQL.Group>
-                    <GraphiQL.Button
-                      label={`Explain ${this.state.explain ? 'ON' : 'OFF'}`}
-                      title="View the SQL statements that this query invokes"
-                      onClick={this.handleToggleExplain}
-                    />
-                    <GraphiQL.Menu label="Options" title="">
-                      {['analyze', 'verbose', 'costs', 'settings', 'buffers', 'wal', 'timing', 'summary']
-                        .map(option => {
-                          const enabled = !!this.state.explainOptions[option];
-                          const icon = enabled ? '\u2611' : '\u2610';
-                          const requiresAnalyze = explainOptionRequiresAnalyze(option);
-                          const warningIndicator = enabled && requiresAnalyze && !this.state.explainOptions.analyze ? '*' : '';
-                          return <GraphiQL.MenuItem
-                            key={option}
-                            label={`${icon} ${warningIndicator}${option.toUpperCase()}`}
-                            title={requiresAnalyze ? 'Requires ANALYZE' : undefined}
-                            onSelect={() => this.handleToggleExplainOption(option)}
-                          />;
-                        }
-                      )}
-                    </GraphiQL.Menu>
-                    <GraphiQL.Menu label="Format" title="">
-                      {['text', 'json', 'yaml', 'xml'].map(format =>
+                <GraphiQL.Group>
+                  <GraphiQL.Button
+                    label={`Explain ${this.state.explain ? 'ON' : 'OFF'}`}
+                    title="View the SQL statements that this query invokes"
+                    onClick={this.handleToggleExplain}
+                  />
+                  <GraphiQL.Menu label="Options" title="">
+                    {[
+                      'analyze',
+                      'verbose',
+                      'costs',
+                      'settings',
+                      'buffers',
+                      'wal',
+                      'timing',
+                      'summary',
+                    ].map(option => {
+                      const enabled = !!this.state.explainOptions[option];
+                      const icon = enabled ? '\u2611' : '\u2610';
+                      const requiresAnalyze = explainOptionRequiresAnalyze(option);
+                      const warningIndicator =
+                        enabled && requiresAnalyze && !this.state.explainOptions.analyze ? '*' : '';
+                      return (
                         <GraphiQL.MenuItem
-                          key={format}
-                          label={`${format.toUpperCase()} ${this.state.explainOptions.format === format ? '\u2713' : ''}`}
-                          onSelect={() => this.handleSetExplainOption('format', format)}
+                          key={option}
+                          label={`${icon} ${warningIndicator}${option.toUpperCase()}`}
+                          title={requiresAnalyze ? 'Requires ANALYZE' : undefined}
+                          onSelect={() => this.handleToggleExplainOption(option)}
                         />
-                      )}
-                    </GraphiQL.Menu>
-                  </GraphiQL.Group>
+                      );
+                    })}
+                  </GraphiQL.Menu>
+                  <GraphiQL.Menu label="Format" title="">
+                    {['text', 'json', 'yaml', 'xml'].map(format => (
+                      <GraphiQL.MenuItem
+                        key={format}
+                        label={`${format.toUpperCase()} ${
+                          this.state.explainOptions.format === format ? '\u2713' : ''
+                        }`}
+                        onSelect={() => this.handleSetExplainOption('format', format)}
+                      />
+                    ))}
+                  </GraphiQL.Menu>
+                </GraphiQL.Group>
               ) : null}
               <GraphiQL.Button
                 label={'Headers ' + (this.state.saveHeadersText ? 'SAVED' : 'unsaved')}
@@ -913,14 +940,24 @@ class PostGraphiQL extends React.PureComponent {
                             EXPLAIN
                           </a>{' '}
                           on executed query:{' '}
-                          <button className="copy-button" onClick={() => writeToClipboard(res.plan)}>copy</button>
+                          <button
+                            className="copy-button"
+                            onClick={() => writeToClipboard(res.plan)}
+                          >
+                            copy
+                          </button>
                         </h4>
                         <pre className="explain-plan">
                           <code>{res.plan}</code>
                         </pre>
                         <h4>
                           Executed SQL query:{' '}
-                          <button className="copy-button" onClick={() => writeToClipboard(res.query)}>copy</button>
+                          <button
+                            className="copy-button"
+                            onClick={() => writeToClipboard(res.query)}
+                          >
+                            copy
+                          </button>
                         </h4>
                         <pre className="explain-sql">
                           <code>{formatSQL(res.query)}</code>
