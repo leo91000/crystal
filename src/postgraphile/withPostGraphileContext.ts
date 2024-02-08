@@ -502,8 +502,10 @@ export function debugPgClient(pgClient: PoolClient, allowExplain = false): PoolC
               return null;
             }
             const plan = result
-              .map((r: any) => r[firstKey])
-              .map((r: any) => (typeof r === 'string' ? r : JSON.stringify(r, null, 2)))
+              .map((r: any) => {
+                const val = r[firstKey];
+                return typeof val === 'string' ? val : JSON.stringify(val, null, 2);
+              })
               .join('\n');
             return {
               ...rest,

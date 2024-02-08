@@ -166,7 +166,7 @@ function withPostGraphileContextFromReqResGenerator(
         jwtToken,
         pgSettings,
         explain: explainHeader && explainHeader.on,
-        explainOptions: explainHeader?.options ?? {},
+        explainOptions: (explainHeader && explainHeader.options) || {},
         ...moreOptions,
       },
       context => {

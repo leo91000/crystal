@@ -95,13 +95,13 @@ function explainOptionRequiresAnalyze(option) {
   return ['wal', 'timing'].includes(option);
 }
 
-function buildExplainOptionsHeader(explainOptions) {
+function buildExplainOptionsString(explainOptions) {
   const analyzeEnabled = explainOptions.analyze;
-  const validOptions = Object.fromEntries(
-    Object.entries(explainOptions).filter(
-      ([option]) => !explainOptionRequiresAnalyze(option) || analyzeEnabled,
-    ),
-  );
+  const validOptions = analyzeEnabled
+    ? explainOptions
+    : Object.fromEntries(
+        Object.entries(explainOptions).filter(([option]) => !explainOptionRequiresAnalyze(option)),
+      );
   return querystring.stringify(validOptions, ';', '=');
 }
 
@@ -407,6 +407,7 @@ class PostGraphiQL extends React.PureComponent {
    */
   executeQuery = async graphQLParams => {
     const extraHeaders = this.getHeaders();
+    const explainOpts = buildExplainOptionsString(this.state.explainOptions);
     const response = await fetch(POSTGRAPHILE_CONFIG.graphqlUrl, {
       method: 'POST',
       headers: Object.assign(
@@ -414,11 +415,7 @@ class PostGraphiQL extends React.PureComponent {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           ...(this.state.explain && POSTGRAPHILE_CONFIG.allowExplain
-            ? {
-                'X-PostGraphile-Explain': `on;${buildExplainOptionsHeader(
-                  this.state.explainOptions,
-                )}`,
-              }
+            ? { 'X-PostGraphile-Explain': explainOpts ? `on;${explainOpts}` : 'on' }
             : null),
         },
         extraHeaders,
