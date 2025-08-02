@@ -1,5 +1,5 @@
 import { TYPES } from "@dataplan/pg";
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import { grafast } from "grafast";
 import type { ExecutionResult } from "grafast/graphql";
 import type { SchemaResult } from "graphile-build";

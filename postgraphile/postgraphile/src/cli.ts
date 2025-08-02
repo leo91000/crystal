@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { pathToFileURL } from "node:url";
 import { inspect } from "node:util";
 
-import type { PgAdaptor } from "@dataplan/pg";
+import { makePgService } from "@dataplan/pg";
 import { grafserv } from "grafserv/node";
 import { resolvePreset } from "graphile-config";
 import type { ArgsFromOptions, Argv } from "graphile-config/cli";
@@ -77,6 +77,12 @@ export function options(yargs: Argv) {
       type: "boolean",
       description:
         "Allow visitors to view the plan/SQL queries/etc related to each GraphQL operation",
+    })
+    .option("adapter", {
+      alias: "a",
+      type: "string",
+      choices: ["node-postgres", "postgres.js", "pglite"],
+      description: "PostgreSQL adapter to use (defaults to node-postgres)",
     });
 }
 
@@ -159,6 +165,7 @@ export async function run(args: ArgsFromOptions<typeof options>) {
     watch,
     preset: rawPresets,
     subscriptions: rawSubscriptions,
+    adapter: rawAdapter,
   } = args;
 
   const cliPresets = rawPresets ? await loadPresets(rawPresets) : [];
@@ -186,26 +193,40 @@ export async function run(args: ArgsFromOptions<typeof options>) {
       );
     }
     const schemas = rawSchema?.split(",") ?? ["public"];
-    const svc = preset.pgServices?.[0];
-    const adaptor = svc?.adaptor ?? (await loadDefaultAdaptor());
+    const adapter = rawAdapter ?? "node-postgres";
 
-    const makePgService = adaptor.makePgService;
-    if (typeof makePgService !== "function") {
+    // Create service config based on adapter type
+    let serviceConfig: any = {
+      schemas,
+      ...(rawSubscriptions ? { pubsub: true } : null),
+    };
+
+    if (adapter === "node-postgres" || !adapter) {
+      serviceConfig = {
+        ...serviceConfig,
+        adapter: "node-postgres" as const,
+        connectionString,
+        superuserConnectionString,
+      };
+    } else if (adapter === "postgres.js") {
+      serviceConfig = {
+        ...serviceConfig,
+        adapter: "postgres.js" as const,
+        connectionString,
+      };
+    } else if (adapter === "pglite") {
+      serviceConfig = {
+        ...serviceConfig,
+        adapter: "pglite" as const,
+        dataDir: connectionString || ":memory:",
+      };
+    } else {
       throw new Error(
-        `Loaded adaptor '${adaptor}' but it does not export a 'makePgService' helper`,
+        `Unknown adapter '${adapter}'. Supported adapters: node-postgres, postgres.js, pglite`,
       );
     }
 
-    const newPgServices = [
-      makePgService({
-        poolConfig: svc?.adaptorSettings?.poolConfig,
-        connectionString,
-        schemas,
-        superuserPoolConfig: svc?.adaptorSettings?.superuserPoolConfig,
-        superuserConnectionString,
-        ...(rawSubscriptions ? { pubsub: true } : null),
-      }),
-    ];
+    const newPgServices = [makePgService(serviceConfig)];
     preset.pgServices = newPgServices;
   }
   preset.grafserv = preset.grafserv || {};
@@ -303,9 +324,3 @@ export async function run(args: ArgsFromOptions<typeof options>) {
   }
 }
 
-async function loadDefaultAdaptor(): Promise<
-  PgAdaptor<"@dataplan/pg/adaptors/pg">
-> {
-  const mod = await import("@dataplan/pg/adaptors/pg");
-  return typeof mod.makePgService === "function" ? mod : mod.default;
-}

@@ -1,5 +1,5 @@
 import { pgSelect, TYPES } from "@dataplan/pg";
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import { connection, constant, grafast } from "grafast";
 import type { GraphQLObjectType } from "grafast/graphql";
 import { GraphQLScalarType, printSchema } from "grafast/graphql";

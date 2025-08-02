@@ -1,4 +1,5 @@
 import type { PgClient, WithPgClient } from "./executor.js";
+import type { PgPool } from "@graphile/pg-adapters";
 
 type PromiseOrDirect<T> = T | PromiseLike<T>;
 
@@ -15,7 +16,7 @@ export interface PgAdaptor<
   >;
   makePgService: (
     options: GraphileConfig.PgAdaptors[TAdaptor]["makePgServiceOptions"],
-  ) => GraphileConfig.PgServiceConfiguration<TAdaptor>;
+  ) => GraphileConfig.PgServiceConfiguration;
 }
 
 /**
@@ -29,87 +30,65 @@ export function isPromiseLike<T>(
 
 const isTest = process.env.NODE_ENV === "test";
 
-interface PgClientBySourceCacheValue<TPgClient extends PgClient = PgClient> {
-  withPgClient: WithPgClient<TPgClient>;
+interface PgClientBySourceCacheValue {
+  withPgClient: WithPgClient<PgClient>;
   retainers: number;
 }
 
 const withPgClientDetailsByConfigCache = new Map<
-  GraphileConfig.PgServiceConfiguration<any>,
-  PromiseOrDirect<PgClientBySourceCacheValue>
+  GraphileConfig.PgServiceConfiguration,
+  PgClientBySourceCacheValue
 >();
 
 /**
  * Get or build the 'withPgClient' callback function for a given database
  * config, caching it to make future lookups faster.
  */
-export function getWithPgClientFromPgService<
-  TAdaptor extends
-    keyof GraphileConfig.PgAdaptors = keyof GraphileConfig.PgAdaptors,
->(
-  config: GraphileConfig.PgServiceConfiguration<TAdaptor>,
-): PromiseOrDirect<
-  WithPgClient<GraphileConfig.PgAdaptors[TAdaptor]["client"]>
-> {
-  type TPgClient = GraphileConfig.PgAdaptors[TAdaptor]["client"];
+export function getWithPgClientFromPgService(
+  config: GraphileConfig.PgServiceConfiguration,
+): WithPgClient<PgClient> {
   const existing = withPgClientDetailsByConfigCache.get(config);
   if (existing) {
-    if (isPromiseLike(existing)) {
-      return existing.then((v) => {
-        v.retainers++;
-        return v.withPgClient as WithPgClient<TPgClient>;
-      });
-    } else {
-      existing.retainers++;
-      return existing.withPgClient as WithPgClient<TPgClient>;
-    }
-  } else {
-    const promise = (async () => {
-      const factory = config.adaptor?.createWithPgClient;
-      if (typeof factory !== "function") {
-        throw new Error(
-          `'${config.adaptor}' does not look like a withPgClient adaptor - please ensure it exports a method called 'createWithPgClient'`,
-        );
-      }
-
-      const originalWithPgClient = await factory(config.adaptorSettings);
-      const withPgClient = ((...args) =>
-        originalWithPgClient.apply(null, args)) as WithPgClient;
-      const cachedValue: PgClientBySourceCacheValue = {
-        withPgClient,
-        retainers: 1,
-      };
-      let released = false;
-      withPgClient.release = () => {
-        cachedValue.retainers--;
-
-        // To allow for other promises to resolve and add/remove from the retaininers, check after a tick
-        const tid = setTimeout(
-          () => {
-            if (cachedValue.retainers === 0 && !released) {
-              released = true;
-              withPgClientDetailsByConfigCache.delete(config);
-              return originalWithPgClient.release?.();
-            }
-            // TODO: this used to be zero, but that seems really inefficient...
-            // Figure out why I did that?
-            // }, 0);
-          },
-          isTest ? 500 : 5000,
-        );
-        tid.unref?.(); // Don't block process exit
-      };
-      withPgClientDetailsByConfigCache.set(config, cachedValue);
-      return cachedValue;
-    })();
-    if (!withPgClientDetailsByConfigCache.has(config)) {
-      withPgClientDetailsByConfigCache.set(config, promise);
-    }
-    promise.catch(() => {
-      withPgClientDetailsByConfigCache.delete(config);
-    });
-    return promise.then((v) => v.withPgClient as WithPgClient<TPgClient>);
+    existing.retainers++;
+    return existing.withPgClient;
   }
+
+  const { pgPool } = config;
+  if (!pgPool) {
+    throw new Error(
+      `PgServiceConfiguration '${config.name}' is missing pgPool`,
+    );
+  }
+
+  const withPgClient: WithPgClient<PgClient> = async (pgSettings, callback) => {
+    return pgPool.withPgClient(pgSettings, callback);
+  };
+  
+  const cachedValue: PgClientBySourceCacheValue = {
+    withPgClient,
+    retainers: 1,
+  };
+  
+  let released = false;
+  withPgClient.release = () => {
+    cachedValue.retainers--;
+
+    // To allow for other promises to resolve and add/remove from the retainers, check after a tick
+    const tid = setTimeout(
+      () => {
+        if (cachedValue.retainers === 0 && !released) {
+          released = true;
+          withPgClientDetailsByConfigCache.delete(config);
+          // Note: we don't call pgPool.release() here because we don't own the pool
+        }
+      },
+      isTest ? 500 : 5000,
+    );
+    tid.unref?.(); // Don't block process exit
+  };
+  
+  withPgClientDetailsByConfigCache.set(config, cachedValue);
+  return withPgClient;
 }
 
 export async function withPgClientFromPgService<T>(
@@ -117,10 +96,7 @@ export async function withPgClientFromPgService<T>(
   pgSettings: Record<string, string | undefined> | null,
   callback: (client: PgClient) => T | Promise<T>,
 ): Promise<T> {
-  const withPgClientFromPgService = getWithPgClientFromPgService(config);
-  const withPgClient = isPromiseLike(withPgClientFromPgService)
-    ? await withPgClientFromPgService
-    : withPgClientFromPgService;
+  const withPgClient = getWithPgClientFromPgService(config);
   try {
     return await withPgClient(pgSettings, callback);
   } finally {
@@ -134,13 +110,12 @@ export async function withSuperuserPgClientFromPgService<T>(
   pgSettings: Record<string, string | undefined> | null,
   callback: (client: PgClient) => T | Promise<T>,
 ): Promise<T> {
-  const withPgClient = await config.adaptor.createWithPgClient(
-    config.adaptorSettings,
-    "SUPERUSER",
-  );
-  try {
-    return await withPgClient(pgSettings, callback);
-  } finally {
-    withPgClient.release?.();
+  const { superuserPgPool } = config;
+  if (!superuserPgPool) {
+    throw new Error(
+      `PgServiceConfiguration '${config.name}' does not have a superuserPgPool configured`,
+    );
   }
+  
+  return superuserPgPool.withPgClient(pgSettings, callback);
 }

@@ -4,10 +4,36 @@ import { randomBytes } from "crypto";
 import type { Pool } from "pg";
 import { Client } from "pg";
 
-import type { PgClientQuery, WithPgClient } from "../src";
-import { createWithPgClient } from "../src/adaptors/pg.js";
+import type { PgClientQuery, WithPgClient, PgClient } from "../src";
+import type { PoolClient } from "pg";
 
 function noop() {}
+
+/**
+ * Test helper that creates a WithPgClient from a raw PoolClient.
+ * This replaces the old createWithPgClient from adaptors/pg.js
+ */
+function createWithPgClient(options: {
+  poolClient: PoolClient;
+  poolClientIsInTransaction?: boolean;
+}): WithPgClient<PgClient> {
+  const { poolClient, poolClientIsInTransaction = false } = options;
+  
+  return async (pgSettings, callback) => {
+    // Apply pgSettings if provided and not in transaction
+    if (pgSettings && !poolClientIsInTransaction) {
+      const entries = Object.entries(pgSettings).filter(([_, v]) => v != null);
+      if (entries.length > 0) {
+        await poolClient.query({
+          text: "select set_config(el->>0, el->>1, true) from json_array_elements($1::json) el",
+          values: [JSON.stringify(entries)],
+        });
+      }
+    }
+    
+    return callback(poolClient as PgClient);
+  };
+}
 
 /**
  * For the tests we want to ensure that `withPgClient` calls hang waiting for

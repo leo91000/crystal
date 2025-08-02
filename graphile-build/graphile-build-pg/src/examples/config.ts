@@ -7,7 +7,7 @@
 import "graphile-config";
 
 import { getWithPgClientFromPgService } from "@dataplan/pg";
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import {
   defaultPreset as graphileBuildPreset,
   QueryQueryPlugin,

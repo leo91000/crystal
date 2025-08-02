@@ -1,4 +1,4 @@
-import * as adaptor from "@dataplan/pg/adaptors/pg";
+import * as adaptor from "@dataplan/pg";
 import { writeFile } from "fs/promises";
 import type { PromiseOrDirect } from "grafast";
 import type { GraphQLSchema } from "grafast/graphql";
@@ -61,7 +61,7 @@ export const test =
             adaptorSettings: {
               poolClient: client,
             },
-          } satisfies GraphileConfig.PgServiceConfiguration<"@dataplan/pg/adaptors/pg">,
+          } satisfies GraphileConfig.PgServiceConfiguration<"@dataplan/pg">,
         ],
         schema: {
           muteWarnings,

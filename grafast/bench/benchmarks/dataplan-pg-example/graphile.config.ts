@@ -1,7 +1,7 @@
 import "graphile-config";
 import "../../src/index.js";
 
-import { createWithPgClient } from "@dataplan/pg/adaptors/pg";
+import { createWithPgClient } from "@dataplan/pg";
 
 export const withPgClient = createWithPgClient({
   connectionString: "postgres:///graphilecrystaltest",

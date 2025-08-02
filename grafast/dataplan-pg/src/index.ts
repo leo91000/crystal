@@ -1,5 +1,6 @@
 import type { GrafastSubscriber } from "grafast";
 import { exportAsMany } from "grafast";
+import type { PgPool } from "@graphile/pg-adapters";
 
 import {
   domainOfCodec,
@@ -432,23 +433,31 @@ exportAsMany("@dataplan/pg", {
 });
 
 export { version } from "./version.js";
+export { makePgService } from "./makePgService.js";
+export { PgSubscriber } from "./pgSubscriber.js";
+export type {
+  PgServiceConfig,
+  NodePostgresPgServiceConfig,
+  PostgresJsPgServiceConfig,
+  PGLitePgServiceConfig,
+} from "./config.js";
 
 declare global {
   namespace GraphileConfig {
-    interface PgServiceConfiguration<
-      TAdaptor extends
-        keyof GraphileConfig.PgAdaptors = keyof GraphileConfig.PgAdaptors,
-    > {
+    interface PgServiceConfiguration {
       name: string;
       schemas?: string[];
 
-      adaptor: PgAdaptor<TAdaptor>;
-      adaptorSettings?: GraphileConfig.PgAdaptors[TAdaptor]["adaptorSettings"];
+      /** The PostgreSQL connection pool */
+      pgPool: PgPool<PgClient>;
+      
+      /** Optional superuser connection pool for administrative tasks */
+      superuserPgPool?: PgPool<PgClient>;
 
       /** The key on 'context' where the withPgClient function will be sourced */
       withPgClientKey: KeysOfType<
         Grafast.Context & object,
-        WithPgClient<GraphileConfig.PgAdaptors[TAdaptor]["client"]>
+        WithPgClient<PgClient>
       >;
 
       /** Return settings to set in the session */
@@ -485,11 +494,7 @@ declare global {
     }
 
     interface Preset {
-      pgServices?: ReadonlyArray<
-        {
-          [Key in keyof GraphileConfig.PgAdaptors]: PgServiceConfiguration<Key>;
-        }[keyof GraphileConfig.PgAdaptors]
-      >;
+      pgServices?: ReadonlyArray<PgServiceConfiguration>;
     }
 
     interface PgAdaptors {

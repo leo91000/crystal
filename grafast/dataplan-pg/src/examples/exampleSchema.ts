@@ -80,7 +80,8 @@ import type {
   PgSelectStep,
   WithPgClient,
 } from "../";
-import type { NodePostgresPgClient, PgSubscriber } from "../adaptors/pg";
+import type { NodePostgresPgClient } from "@graphile/pg-adapters/node-postgres";
+import type { PgSubscriber } from "../pgSubscriber";
 import { listOfCodec, sqlValueWithCodec } from "../codecs.js";
 import {
   makePgResourceOptions,

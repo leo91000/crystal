@@ -10,11 +10,6 @@
       "types": "./dist/index.d.ts",
       "node": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./adaptors/pg": {
-      "types": "./dist/adaptors/pg.d.ts",
-      "node": "./dist/adaptors/pg.js",
-      "default": "./dist/adaptors/pg.js"
     }
   },
   "scripts": {
@@ -51,6 +46,7 @@
   "dependencies": {
     "@dataplan/json": "workspace:^",
     "@graphile/lru": "workspace:^",
+    "@graphile/pg-adapters": "workspace:^",
     "@types/node": "^22.16.3",
     "chalk": "^4.1.2",
     "debug": "^4.4.1",
@@ -66,13 +62,18 @@
   },
   "peerDependencies": {
     "@dataplan/json": "workspace:^",
+    "@electric-sql/pglite": "^0.3.0",
     "grafast": "workspace:^",
     "graphile-config": "workspace:^",
     "pg": "^8.7.1",
-    "pg-sql2": "workspace:^"
+    "pg-sql2": "workspace:^",
+    "postgres": "^3.0.0"
   },
   "peerDependenciesMeta": {
     "@dataplan/json": {
+      "optional": true
+    },
+    "@electric-sql/pglite": {
       "optional": true
     },
     "grafast": {
@@ -85,6 +86,9 @@
       "optional": true
     },
     "pg-sql2": {
+      "optional": true
+    },
+    "postgres": {
       "optional": true
     }
   },

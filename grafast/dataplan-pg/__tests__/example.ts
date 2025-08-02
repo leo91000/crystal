@@ -28,9 +28,10 @@ import { Pool } from "pg";
 import { format } from "prettier";
 
 import {
-  makePgAdaptorWithPgClient,
+  getWithPgClientFromPgService,
+  makePgService,
   PgSubscriber,
-} from "../dist/adaptors/pg.js";
+} from "../dist/index.js";
 import { makeExampleSchema } from "../dist/examples/exampleSchema.js";
 
 const schema = makeExampleSchema();
@@ -109,8 +110,12 @@ async function main() {
   }
 
   async function test(source: string, variableValues = Object.create(null)) {
-    const withPgClient = makePgAdaptorWithPgClient(testPool);
-    const pgSubscriber = new PgSubscriber(testPool);
+    const pgService = makePgService({
+      adapter: "node-postgres",
+      pool: testPool,
+    });
+    const withPgClient = getWithPgClientFromPgService(pgService);
+    const pgSubscriber = pgService.pgSubscriber;
     const contextValue: Grafast.Context = {
       pgSettings: {},
       withPgClient,

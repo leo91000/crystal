@@ -2678,6 +2678,7 @@ __metadata:
   dependencies:
     "@dataplan/json": "workspace:^"
     "@graphile/lru": "workspace:^"
+    "@graphile/pg-adapters": "workspace:^"
     "@mermaid-js/mermaid-cli": "npm:^11.6.0"
     "@types/jest": "npm:^30.0.0"
     "@types/json5": "npm:^2.2.0"
@@ -2712,12 +2713,16 @@ __metadata:
     zx: "npm:^8.6.2"
   peerDependencies:
     "@dataplan/json": "workspace:^"
+    "@electric-sql/pglite": ^0.3.0
     grafast: "workspace:^"
     graphile-config: "workspace:^"
     pg: ^8.7.1
     pg-sql2: "workspace:^"
+    postgres: ^3.0.0
   peerDependenciesMeta:
     "@dataplan/json":
+      optional: true
+    "@electric-sql/pglite":
       optional: true
     grafast:
       optional: true
@@ -2726,6 +2731,8 @@ __metadata:
     pg:
       optional: true
     pg-sql2:
+      optional: true
+    postgres:
       optional: true
   languageName: unknown
   linkType: soft
@@ -3391,6 +3398,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electric-sql/pglite@npm:^0.3.6":
+  version: 0.3.6
+  resolution: "@electric-sql/pglite@npm:0.3.6"
+  checksum: 10/335cbdfcbc251f9fe203b9fe09d66efe4b9c03cc934967bc48b7cc0e03f8cb8e91ce4bb58004c4e38fd1cb979f1c1592d3cd12d9e16fb333062cc51126324837
+  languageName: node
+  linkType: hard
+
 "@emnapi/core@npm:^1.4.3":
   version: 1.4.3
   resolution: "@emnapi/core@npm:1.4.3"
@@ -3838,6 +3852,34 @@ __metadata:
     ts-node: "npm:^10.9.2"
     tslib: "npm:^2.8.1"
     typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
+"@graphile/pg-adapters@workspace:^, @graphile/pg-adapters@workspace:utils/pg-adapters":
+  version: 0.0.0-use.local
+  resolution: "@graphile/pg-adapters@workspace:utils/pg-adapters"
+  dependencies:
+    "@electric-sql/pglite": "npm:^0.3.6"
+    "@graphile/lru": "workspace:^"
+    "@types/node": "npm:^22.16.3"
+    "@types/pg": "npm:^8.15.4"
+    debug: "npm:^4.4.1"
+    jest: "npm:^30.0.4"
+    pg: "npm:^8.16.3"
+    postgres: "npm:^3.4.7"
+    tslib: "npm:^2.8.1"
+    typescript: "npm:^5.8.3"
+  peerDependencies:
+    "@electric-sql/pglite": ^0.3.0
+    pg: ^8.7.1
+    postgres: ^3.0.0
+  peerDependenciesMeta:
+    "@electric-sql/pglite":
+      optional: true
+    pg:
+      optional: true
+    postgres:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -20891,6 +20933,13 @@ __metadata:
   version: 1.1.4
   resolution: "postgres-range@npm:1.1.4"
   checksum: 10/035759f17b44bf9ba7e71a30402ed2ca1e2b7fabb3ad794b08169a5b453d38d06905a6dfb51fe41a3f6d9fac4e183dac9e769b95053053db933be16785edce1f
+  languageName: node
+  linkType: hard
+
+"postgres@npm:^3.4.7":
+  version: 3.4.7
+  resolution: "postgres@npm:3.4.7"
+  checksum: 10/ef5b43b137412c13d907da0d37e7d4141653365fd371ffa000e124076119fe14ef95a27b1469f2ed6fb006f855746fc65087f326a124fe320a2b1f3bbec397f4
   languageName: node
   linkType: hard
 

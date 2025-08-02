@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import {
   buildInflection,
   buildSchema,

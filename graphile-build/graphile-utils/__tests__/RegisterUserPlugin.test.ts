@@ -1,4 +1,4 @@
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import { grafast } from "grafast";
 import { makeSchema } from "graphile-build";
 import type { Pool } from "pg";

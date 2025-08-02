@@ -11,8 +11,8 @@ import "graphile-config";
 import "graphile-build-pg";
 
 import type { PgClientQuery } from "@dataplan/pg";
-import { PgSubscriber } from "@dataplan/pg/adaptors/pg";
-import * as adaptor from "@dataplan/pg/adaptors/pg";
+import { PgSubscriber } from "@dataplan/pg";
+import * as adaptor from "@dataplan/pg";
 import { promises as fsp } from "fs";
 import { mkdir, mkdtemp, rmdir, unlink } from "fs/promises";
 import {
@@ -358,7 +358,7 @@ export async function runTestQuery(
         adaptorSettings: {
           connectionString,
         },
-      } satisfies GraphileConfig.PgServiceConfiguration<"@dataplan/pg/adaptors/pg">,
+      } satisfies GraphileConfig.PgServiceConfiguration<"@dataplan/pg">,
     ],
     schema: {
       pgForbidSetofFunctionsToReturnNull:

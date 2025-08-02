@@ -13,7 +13,7 @@ import { pathToFileURL } from "node:url";
 import { inspect } from "node:util";
 
 import { getWithPgClientFromPgService } from "@dataplan/pg";
-import { makePgService } from "@dataplan/pg/adaptors/pg";
+import { makePgService } from "@dataplan/pg";
 import { envelop, useExtendContext, useSchema } from "@envelop/core";
 import { useParserCache } from "@envelop/parser-cache";
 import { useValidationCache } from "@envelop/validation-cache";

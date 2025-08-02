@@ -22,7 +22,7 @@ import {
   sqlFromArgDigests,
   TYPES,
 } from "@dataplan/pg";
-import { makePgAdaptorWithPgClient } from "@dataplan/pg/adaptors/pg";
+import { getWithPgClientFromPgService, makePgService } from "@dataplan/pg";
 import chalk from "chalk";
 import { context, object } from "grafast";
 import { graphql, printSchema } from "grafast/graphql";
@@ -41,7 +41,11 @@ import { defaultPreset as graphileBuildPgPreset } from "../index.js";
 const pool = new Pool({
   connectionString: "graphilecrystaltest",
 });
-const withPgClient: WithPgClient = makePgAdaptorWithPgClient(pool);
+const pgService = makePgService({
+  adapter: "node-postgres",
+  pool,
+});
+const withPgClient: WithPgClient = getWithPgClientFromPgService(pgService);
 
 declare global {
   namespace GraphileConfig {

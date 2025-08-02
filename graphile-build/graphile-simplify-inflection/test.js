@@ -4,7 +4,7 @@ const fsp = require("fs").promises;
 const child_process = require("child_process");
 const { PgSimplifyInflectionPreset } = require("./dist/index.js");
 const { makeSchema } = require("postgraphile");
-const { makePgService } = require("@dataplan/pg/adaptors/pg");
+const { makePgService } = require("@dataplan/pg");
 const { PostGraphileAmberPreset } = require("postgraphile/presets/amber");
 const { makeV4Preset } = require("postgraphile/presets/v4");
 const { printSchema, lexicographicSortSchema } = require("graphql");
@@ -95,7 +95,9 @@ async function getSchema(client, withSimplify, settings) {
   });
   // TODO: solve this better!
   // Hack to release the pool
-  pgServices[0].adaptorSettings.pool.end();
+  if (pgServices[0].release) {
+    await pgServices[0].release();
+  }
   return result.schema;
 }
 
